@@ -357,11 +357,7 @@ const HisnMuslim: React.FC<HisnMuslimProps> = ({ soundEnabled, hapticsEnabled })
     
     playSound();
 
-    if (isCompleted) {
-        handleNext();
-        return;
-    }
-
+    // Prioritize Cooldown UI: Show countdown even if target reached, then advance.
     const key = `${activeCategory.id}_${activeDhikr.id}`;
     const newCount = currentCount + 1;
     
@@ -432,12 +428,20 @@ const HisnMuslim: React.FC<HisnMuslimProps> = ({ soundEnabled, hapticsEnabled })
     setTouchEnd(null);
   };
 
-  const handleReset = (e: React.MouseEvent | React.PointerEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
+  const performReset = () => {
       if(window.confirm('تصفير العداد؟')) {
          setCurrentCounts(prev => ({...prev, [`${activeCategory?.id}_${activeDhikr?.id}`]: 0}))
       }
+  };
+
+  const handleResetClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    performReset();
+  };
+
+  const handleResetTouch = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    performReset();
   };
 
   // Button Visuals
@@ -568,9 +572,10 @@ const HisnMuslim: React.FC<HisnMuslimProps> = ({ soundEnabled, hapticsEnabled })
       {/* Fixed height container at the bottom to hold the button securely */}
       <div className="shrink-0 h-[350px] relative w-full pointer-events-none">
           {/* Button positioned absolutely within this bottom container */}
-          {/* Raised to 110px as requested */}
-          <div className="absolute bottom-[110px] left-0 right-0 flex justify-center z-20 pointer-events-auto">
-             <div className="relative">
+          {/* Main container set to pointer-events-none to allow clicks to pass through empty spaces */}
+          {/* The Wrapper for the main button: CRITICAL CHANGE -> pointer-events-none */}
+          <div className="absolute bottom-[110px] left-0 right-0 flex justify-center z-20 pointer-events-none">
+             <div className="relative pointer-events-auto">
                 
                 <button 
                     onClick={handleIncrement}
@@ -603,7 +608,7 @@ const HisnMuslim: React.FC<HisnMuslimProps> = ({ soundEnabled, hapticsEnabled })
 
                     <div className="z-10 flex flex-col items-center gap-2">
                         {isCooldown ? (
-                            <>
+                                <>
                                 <Lock size={40} className="text-slate-400 dark:text-slate-500" />
                                 <span className="text-xs font-medium text-amber-600 dark:text-amber-500 animate-pulse">
                                     انتظر {Math.ceil(timeLeft / 1000)} ث...
@@ -631,17 +636,19 @@ const HisnMuslim: React.FC<HisnMuslimProps> = ({ soundEnabled, hapticsEnabled })
                 </button>
             </div>
           </div>
-
-          {/* Reset Button MOVED UP to clear navbar overlap */}
-           <button 
-                onClick={handleReset}
-                onMouseDown={(e) => { e.stopPropagation(); }}
-                className="absolute bottom-[110px] left-6 z-[100] p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 shadow-lg border border-slate-200 dark:border-white/10 transition-all active:scale-90 cursor-pointer touch-manipulation pointer-events-auto"
-                aria-label="تصفير العداد"
-            >
-                <RotateCcw size={24} />
-            </button>
       </div>
+      
+      {/* Reset Button - FIXED POSITION TO ENSURE CLICKABILITY */}
+      <button 
+        type="button"
+        onClick={handleResetClick}
+        onTouchEnd={handleResetTouch}
+        onTouchStart={(e) => e.stopPropagation()}
+        className="fixed bottom-[110px] left-6 z-[9999] p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 shadow-xl border border-slate-200 dark:border-white/10 transition-transform active:scale-90 cursor-pointer pointer-events-auto touch-manipulation"
+        aria-label="تصفير العداد"
+      >
+        <RotateCcw size={24} className="pointer-events-none" />
+      </button>
 
     </div>
   );

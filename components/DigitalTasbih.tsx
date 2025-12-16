@@ -50,7 +50,6 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
-    // Initialize AudioContext on first click to comply with browser policies
     const initAudio = () => {
         if (!audioCtxRef.current) {
             audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -264,35 +263,35 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
     setIsCooldown(true);
     setTimeLeft(COOLDOWN_MS);
 
-    // Auto advance and reset logic
+    // Auto complete logic: Just reset the count for the SAME item, DO NOT advance
     if (isTargetReached) {
       setTimeout(() => {
-        // Reset current item count to 0
+        // Reset current item count to 0 but stay on same item
         setItems(prevItems => prevItems.map(i => i.id === activeItem.id ? { ...i, count: 0 } : i));
         
-        // Explicitly calculate next index based on current state to ensure correct transition
-        const currentIdx = items.findIndex(i => i.id === activeItem.id);
-        if (currentIdx !== -1 && items.length > 0) {
-           const nextIdx = (currentIdx + 1) % items.length;
-           setActiveItemId(items[nextIdx].id);
-        }
-
         setIsCooldown(false);
         setTimeLeft(0);
       }, COOLDOWN_MS);
     }
   };
 
-  const handleReset = (e: React.MouseEvent | React.PointerEvent | any) => {
-    if (e && e.stopPropagation) e.stopPropagation();
-    if (e && e.preventDefault) e.preventDefault();
-    
+  const performReset = () => {
     if (!activeItem) return;
     if (window.confirm("تصفير العداد الحالي؟")) {
       setItems(prev => prev.map(item => item.id === activeItem.id ? { ...item, count: 0 } : item));
       setIsCooldown(false);
       setTimeLeft(0);
     }
+  };
+
+  const handleResetClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    performReset();
+  };
+
+  const handleResetTouch = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    performReset();
   };
 
   const radius = 90;
@@ -467,10 +466,9 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
       {/* Fixed height container at the bottom to hold the button securely */}
       <div className="shrink-0 h-[350px] relative w-full pointer-events-none">
           {/* Button positioned absolutely within this bottom container */}
-          {/* Raised to 110px as requested */}
-          <div className="absolute bottom-[110px] left-0 right-0 flex justify-center z-20 pointer-events-auto">
-             <div className="relative">
-                
+          {/* The Wrapper for the main button: CRITICAL CHANGE -> pointer-events-none */}
+          <div className="absolute bottom-[110px] left-0 right-0 flex justify-center z-20 pointer-events-none">
+             <div className="relative pointer-events-auto">
                 <button 
                     onClick={handleIncrement}
                     disabled={isCooldown}
@@ -525,18 +523,20 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
                 </button>
             </div>
           </div>
-          
-           {/* Reset Button MOVED UP to clear navbar overlap */}
-           <button 
-                onClick={handleReset}
-                onMouseDown={(e) => { e.stopPropagation(); }}
-                className="absolute bottom-[110px] left-6 z-[100] p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 shadow-lg border border-slate-200 dark:border-white/10 transition-all active:scale-90 cursor-pointer touch-manipulation pointer-events-auto"
-                aria-label="تصفير العداد"
-            >
-                <RotateCcw size={24} />
-            </button>
       </div>
       
+      {/* Reset Button - FIXED POSITION TO ENSURE CLICKABILITY */}
+      <button 
+        type="button"
+        onClick={handleResetClick}
+        onTouchEnd={handleResetTouch}
+        onTouchStart={(e) => e.stopPropagation()}
+        className="fixed bottom-[110px] left-6 z-[9999] p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 shadow-xl border border-slate-200 dark:border-white/10 transition-transform active:scale-90 cursor-pointer pointer-events-auto touch-manipulation"
+        aria-label="تصفير العداد"
+      >
+        <RotateCcw size={24} className="pointer-events-none" />
+      </button>
+
       {showEditModal && renderEditModal()}
     </div>
   );
