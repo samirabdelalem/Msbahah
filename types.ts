@@ -2,7 +2,8 @@
 export enum TabView {
   HOME = 'HOME',
   TASBIH = 'TASBIH', // Free Custom Tasbih
-  HISN_MUSLIM = 'HISN_MUSLIM' // Replaces AI_GUIDE
+  DUA_LIST = 'DUA_LIST', // New Dua List Feature
+  HISN_MUSLIM = 'HISN_MUSLIM', // Islamic Fort
 }
 
 export enum ThemeMode {

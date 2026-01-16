@@ -5,11 +5,11 @@ import {
   RotateCcw, 
   Target,
   X,
-  LayoutGrid,
+  Heart,
   ChevronRight,
   ChevronLeft,
   Lock,
-  Fingerprint,
+  Hand,
   Settings,
   ArrowRight,
   Trash2,
@@ -18,12 +18,12 @@ import {
 } from 'lucide-react';
 import StatisticsView from './StatisticsView';
 
-interface DigitalTasbihProps {
+interface DuaListProps {
   soundEnabled: boolean;
   hapticsEnabled: boolean;
 }
 
-interface TasbihItem {
+interface DuaItem {
   id: string;
   name: string;
   count: number;
@@ -32,14 +32,14 @@ interface TasbihItem {
   completions: number;
 }
 
-const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnabled }) => {
-  const [items, setItems] = useState<TasbihItem[]>([]);
+const DuaList: React.FC<DuaListProps> = ({ soundEnabled, hapticsEnabled }) => {
+  const [items, setItems] = useState<DuaItem[]>([]);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   
   const [isManaging, setIsManaging] = useState(false); 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showStats, setShowStats] = useState(false);
-  const [editingItem, setEditingItem] = useState<TasbihItem | null>(null);
+  const [editingItem, setEditingItem] = useState<DuaItem | null>(null);
 
   const [formName, setFormName] = useState('');
   const [formTarget, setFormTarget] = useState('');
@@ -81,8 +81,8 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
       const gain = audioCtxRef.current.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, audioCtxRef.current.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(300, audioCtxRef.current.currentTime + 0.1);
+      osc.frequency.setValueAtTime(600, audioCtxRef.current.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(200, audioCtxRef.current.currentTime + 0.1);
       
       gain.gain.setValueAtTime(0.3, audioCtxRef.current.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtxRef.current.currentTime + 0.1);
@@ -95,22 +95,22 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem('smart_tasbih_items');
+    const saved = localStorage.getItem('smart_dua_items');
     if (saved) {
       try {
         const parsedItems = JSON.parse(saved);
         setItems(parsedItems);
         if (parsedItems.length > 0) {
-          setActiveItemId(prev => parsedItems.find((i: TasbihItem) => i.id === prev) ? prev : parsedItems[0].id);
+          setActiveItemId(prev => parsedItems.find((i: DuaItem) => i.id === prev) ? prev : parsedItems[0].id);
         }
       } catch (e) {
         console.error("Failed to parse saved items", e);
       }
     } else {
       const defaults = [
-        { id: '1', name: 'استغفار', count: 0, target: 100, totalAllTime: 0, completions: 0 },
-        { id: '2', name: 'الصلاة على النبي', count: 0, target: 1000, totalAllTime: 0, completions: 0 },
-        { id: '3', name: 'سبحان الله وبحمده', count: 0, target: 100, totalAllTime: 0, completions: 0 },
+        { id: '1', name: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ', count: 0, target: 10, totalAllTime: 0, completions: 0 },
+        { id: '2', name: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', count: 0, target: 33, totalAllTime: 0, completions: 0 },
+        { id: '3', name: 'يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ', count: 0, target: 100, totalAllTime: 0, completions: 0 },
       ];
       setItems(defaults);
       setActiveItemId(defaults[0].id);
@@ -119,7 +119,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
 
   useEffect(() => {
     if (items.length > 0) {
-      localStorage.setItem('smart_tasbih_items', JSON.stringify(items));
+      localStorage.setItem('smart_dua_items', JSON.stringify(items));
     }
   }, [items]);
 
@@ -192,7 +192,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
           : item
       ));
     } else {
-      const newItem: TasbihItem = {
+      const newItem: DuaItem = {
         id: Date.now().toString(),
         name: formName,
         target: finalTarget,
@@ -207,7 +207,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
   };
 
   const handleDeleteItem = (id: string) => {
-    if (window.confirm("هل أنت متأكد من حذف هذا الذكر؟")) {
+    if (window.confirm("هل أنت متأكد من حذف هذا الدعاء؟")) {
       const newItems = items.filter(i => i.id !== id);
       setItems(newItems);
       if (newItems.length > 0) {
@@ -218,7 +218,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
     }
   };
 
-  const openEditModal = (item?: TasbihItem) => {
+  const openEditModal = (item?: DuaItem) => {
     if (item) {
       setEditingItem(item);
       setFormName(item.name);
@@ -238,7 +238,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
     setFormTarget('');
   };
 
-  // Function to log detailed stats specific to Tasbih
+  // Function to log detailed stats specific to Dua
   const logStatistic = () => {
       const now = new Date();
       const dateKey = now.toISOString().split('T')[0]; // YYYY-MM-DD
@@ -249,7 +249,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
       else if (hour >= 11 && hour < 16) segment = 'noon';
       else if (hour >= 16 && hour < 21) segment = 'evening';
 
-      const statsStr = localStorage.getItem('tasbih_stats_history');
+      const statsStr = localStorage.getItem('dua_stats_history');
       let stats = statsStr ? JSON.parse(statsStr) : {};
 
       if (!stats[dateKey]) {
@@ -260,7 +260,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
       if (!stats[dateKey].segments) stats[dateKey].segments = { morning: 0, noon: 0, evening: 0, night: 0 };
       stats[dateKey].segments[segment] = (stats[dateKey].segments[segment] || 0) + 1;
 
-      localStorage.setItem('tasbih_stats_history', JSON.stringify(stats));
+      localStorage.setItem('dua_stats_history', JSON.stringify(stats));
   };
 
   const handleIncrement = () => {
@@ -272,9 +272,8 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
     }
     
     playSound();
-    logStatistic(); // Log Tasbih specific stats
+    logStatistic(); // Log Dua specific stats
     
-    // Determine if target reached based on projected count
     const nextCount = activeItem.count + 1;
     const isTargetReached = activeItem.target > 0 && nextCount >= activeItem.target;
 
@@ -296,12 +295,9 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
     setIsCooldown(true);
     setTimeLeft(COOLDOWN_MS);
 
-    // Auto complete logic: Just reset the count for the SAME item, DO NOT advance
     if (isTargetReached) {
       setTimeout(() => {
-        // Reset current item count to 0 but stay on same item
         setItems(prevItems => prevItems.map(i => i.id === activeItem.id ? { ...i, count: 0 } : i));
-        
         setIsCooldown(false);
         setTimeLeft(0);
       }, COOLDOWN_MS);
@@ -334,7 +330,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
             <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl border-t sm:border border-slate-200 dark:border-white/10 p-6 shadow-2xl animate-in slide-in-from-bottom duration-300" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold text-slate-800 dark:text-white">
-                        {editingItem ? 'تعديل الذكر' : 'إضافة ذكر جديد'}
+                        {editingItem ? 'تعديل الدعاء' : 'إضافة دعاء جديد'}
                     </h3>
                     <button onClick={closeModal} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                         <X size={20} />
@@ -344,20 +340,19 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
                 <div className="space-y-4">
                     <div>
                         <div className="flex justify-between items-center mb-1">
-                            <label className="text-xs text-slate-500 block">اسم الذكر</label>
+                            <label className="text-xs text-slate-500 block">نص الدعاء</label>
                             <span className={`text-xs font-mono ${formName.length >= 300 ? 'text-rose-500 font-bold' : 'text-slate-400'}`}>
                                 {formName.length}/300
                             </span>
                         </div>
-                        <input 
-                            type="text" 
+                        <textarea 
                             value={formName}
                             onChange={(e) => setFormName(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSaveItem()}
+                            // Remove onKeyDown enter to submit for TextArea to allow multiline if needed, or keep it
                             autoFocus
                             maxLength={300}
-                            placeholder="مثلاً: استغفار"
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-slate-900 dark:text-white focus:border-emerald-500 outline-none transition-colors"
+                            placeholder="اكتب الدعاء هنا..."
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-slate-900 dark:text-white focus:border-emerald-500 outline-none transition-colors h-24 resize-none"
                         />
                     </div>
                     <div>
@@ -367,7 +362,6 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
                                 type="number" 
                                 value={formTarget}
                                 onChange={(e) => setFormTarget(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSaveItem()}
                                 placeholder="اتركه فارغاً للعد المفتوح"
                                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-slate-900 dark:text-white focus:border-emerald-500 outline-none transition-colors"
                             />
@@ -396,7 +390,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">تصفير العداد؟</h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                      هل أنت متأكد من تصفير العداد الحالي؟ سيعود الرقم إلى الصفر.
+                      هل أنت متأكد من تصفير عداد هذا الدعاء؟
                   </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -421,8 +415,8 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
       return (
         <StatisticsView 
           onClose={() => setShowStats(false)} 
-          storageKey="tasbih_stats_history"
-          title="إحصائيات السبحة"
+          storageKey="dua_stats_history"
+          title="إحصائيات الأدعية"
         />
       );
   }
@@ -437,7 +431,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
             >
                 <ArrowRight size={24} />
             </button>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-white">إدارة الأذكار</h2>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white">إدارة الأدعية</h2>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
@@ -445,7 +439,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
                 onClick={() => openEditModal()}
                 className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-2 font-bold mb-4"
             >
-                <Plus size={20} /> إضافة ذكر جديد
+                <Plus size={20} /> إضافة دعاء جديد
             </button>
 
             {items.map(item => (
@@ -484,7 +478,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
       {/* Header */}
       <div className="px-5 pt-5 pb-2 flex justify-between items-center z-10 shrink-0 h-[60px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm">
            <h2 className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2 text-lg">
-              <LayoutGrid size={20} /> مسبحتي
+              <Heart size={20} /> أدعيتي
            </h2>
            <div className="flex items-center gap-2">
               <button 
@@ -541,7 +535,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
 
                     <div className="w-full px-16 z-10 max-h-[80%] overflow-y-auto no-scrollbar flex flex-col items-center justify-center">
                         <h3 className="text-sm font-bold text-slate-800 dark:text-white leading-relaxed font-cairo text-center break-words whitespace-pre-wrap transition-colors">
-                            {activeItem ? activeItem.name : 'قائمة الأذكار فارغة'}
+                            {activeItem ? activeItem.name : 'قائمة الأدعية فارغة'}
                         </h3>
                     </div>
                 </div>
@@ -593,7 +587,7 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
                             </>
                         ) : (
                             <>
-                                <Fingerprint size={50} className="text-emerald-100 dark:text-emerald-300 opacity-80" strokeWidth={1.5} />
+                                <Hand size={50} className="text-emerald-100 dark:text-emerald-300 opacity-80" strokeWidth={1.5} />
                                 <span className="text-6xl font-bold text-white tabular-nums tracking-tighter drop-shadow-lg">
                                     {activeItem ? activeItem.count : 0}
                                 </span>
@@ -616,4 +610,4 @@ const DigitalTasbih: React.FC<DigitalTasbihProps> = ({ soundEnabled, hapticsEnab
   );
 };
 
-export default DigitalTasbih;
+export default DuaList;

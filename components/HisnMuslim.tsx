@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronRight, 
@@ -7,7 +8,7 @@ import {
   Moon, 
   BedDouble, 
   Home,
-  BookOpen,
+  BookOpen, 
   Search,
   Shirt,
   Droplets,
@@ -279,6 +280,9 @@ const HisnMuslim: React.FC<HisnMuslimProps> = ({ soundEnabled, hapticsEnabled })
   const [timeLeft, setTimeLeft] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Custom Reset Modal State
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  
   // Cooldown Constants
   const COOLDOWN_MS = 1500;
   
@@ -428,27 +432,55 @@ const HisnMuslim: React.FC<HisnMuslimProps> = ({ soundEnabled, hapticsEnabled })
     setTouchEnd(null);
   };
 
-  const performReset = () => {
-      if(window.confirm('تصفير العداد؟')) {
-         setCurrentCounts(prev => ({...prev, [`${activeCategory?.id}_${activeDhikr?.id}`]: 0}))
-      }
+  // Trigger Reset (Opens Modal)
+  const handleResetClick = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setShowResetConfirm(true);
   };
 
-  const handleResetClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    performReset();
+  // Perform Actual Reset
+  const confirmReset = () => {
+    if (activeCategory && activeDhikr) {
+       setCurrentCounts(prev => ({...prev, [`${activeCategory.id}_${activeDhikr.id}`]: 0}));
+    }
+    setShowResetConfirm(false);
   };
 
-  const handleResetTouch = (e: React.TouchEvent) => {
-    e.stopPropagation();
-    performReset();
-  };
-
-  // Button Visuals
   const radius = 90;
   const circumference = 2 * Math.PI * radius;
   const cooldownProgress = (timeLeft / COOLDOWN_MS) * 100;
   const strokeDashoffset = circumference - ((100 - cooldownProgress) / 100) * circumference;
+
+  const renderResetConfirmModal = () => (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 px-8">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setShowResetConfirm(false)} />
+          <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl ring-1 ring-white/10 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+              <div className="flex flex-col items-center text-center mb-6">
+                  <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-500 mb-4">
+                     <RotateCcw size={24} />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">تصفير العداد؟</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                      هل أنت متأكد من تصفير العداد الحالي؟ سيعود الرقم إلى الصفر.
+                  </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                  <button 
+                      onClick={() => setShowResetConfirm(false)}
+                      className="py-3 px-4 rounded-xl font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  >
+                      إلغاء
+                  </button>
+                  <button 
+                      onClick={confirmReset}
+                      className="py-3 px-4 rounded-xl font-bold bg-rose-500 text-white hover:bg-rose-600 shadow-lg shadow-rose-500/20 transition-colors"
+                  >
+                      نعم، صفر
+                  </button>
+              </div>
+          </div>
+      </div>
+  );
 
   // --- VIEW: CATEGORY LIST ---
   if (!activeCategory) {
@@ -502,7 +534,7 @@ const HisnMuslim: React.FC<HisnMuslimProps> = ({ soundEnabled, hapticsEnabled })
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 relative transition-colors duration-300 overflow-hidden">
       
       {/* Header */}
-      <div className="px-4 py-4 flex items-center gap-3 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm shrink-0 h-[60px]">
+      <div className="px-4 py-4 flex items-center gap-3 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm shrink-0 h-[60px] justify-between">
           <button 
             onClick={handleBack}
             className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
@@ -517,40 +549,47 @@ const HisnMuslim: React.FC<HisnMuslimProps> = ({ soundEnabled, hapticsEnabled })
                   <span>{activeCategory.items.length}</span>
               </div>
           </div>
-          <div className="w-10" /> 
+          <button 
+            type="button"
+            onClick={handleResetClick}
+            className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-20 active:scale-95"
+            aria-label="تصفير العداد"
+          >
+            <RotateCcw size={20} />
+          </button>
       </div>
 
       {/* Main Content Area - Split Layout using Flexbox */}
       {/* Top Part: Flexible Card Area - FIXED CONTAINER (overflow-hidden) */}
-      <div className="flex-1 w-full relative overflow-hidden flex items-center justify-center">
-         <div className="px-4 w-full h-full flex flex-col justify-center relative">
+      <div className="flex-1 w-full px-2 relative overflow-hidden flex items-center justify-center">
+         <div className="w-full h-full flex flex-col justify-center relative">
             
-            {/* Navigation Arrows (Absolute Centered) */}
-            <button 
-                onClick={handleNext}
-                disabled={activeDhikrIndex === activeCategory.items.length - 1}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-12 h-20 flex items-center justify-center text-slate-400 dark:text-slate-600 hover:text-emerald-600 dark:hover:text-emerald-400 disabled:opacity-20 active:scale-90 transition-all outline-none"
-            >
-                <ChevronLeft size={36} />
-            </button>
-
-            <button 
-                onClick={handlePrev}
-                disabled={activeDhikrIndex === 0}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-12 h-20 flex items-center justify-center text-slate-400 dark:text-slate-600 hover:text-emerald-600 dark:hover:text-emerald-400 disabled:opacity-20 active:scale-90 transition-all outline-none"
-            >
-                <ChevronRight size={36} />
-            </button>
-
-            {/* The Card */}
-            <div className="px-[10px] w-full relative z-10">
+            {/* The Card - Arrows Inside with VISIBLE GREEN STRIPS */}
+            <div className="w-full relative z-10 h-full max-h-[50vh] flex flex-col">
                 <div 
-                    className="w-full min-h-[250px] max-h-[50vh] rounded-[2rem] bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-emerald-500/30 shadow-xl dark:shadow-2xl relative overflow-hidden flex flex-col justify-center items-center text-center p-6 touch-pan-y transition-colors duration-300"
+                    className="w-full h-full rounded-[2rem] bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-emerald-500/30 shadow-xl dark:shadow-2xl relative overflow-hidden flex flex-col justify-center items-center text-center touch-pan-y transition-colors duration-300"
                     onTouchStart={onTouchStart}
                     onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
                 >
-                    <div className="w-full px-2 z-10 max-h-[35vh] overflow-y-auto no-scrollbar flex flex-col items-center justify-center">
+                    {/* Navigation Buttons Inside Card - Visible Colored Strips */}
+                    <button 
+                        onClick={handlePrev}
+                        disabled={activeDhikrIndex === 0}
+                        className="absolute right-0 top-0 bottom-0 w-14 flex items-center justify-center text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/20 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 disabled:opacity-30 disabled:hover:bg-transparent transition-all outline-none z-20 border-l border-emerald-500/10 dark:border-white/5 rounded-l-[2rem]"
+                    >
+                        <ChevronRight size={32} />
+                    </button>
+
+                    <button 
+                        onClick={handleNext}
+                        disabled={activeDhikrIndex === activeCategory.items.length - 1}
+                        className="absolute left-0 top-0 bottom-0 w-14 flex items-center justify-center text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/20 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 disabled:opacity-30 disabled:hover:bg-transparent transition-all outline-none z-20 border-r border-emerald-500/10 dark:border-white/5 rounded-r-[2rem]"
+                    >
+                        <ChevronLeft size={32} />
+                    </button>
+
+                    <div className="w-full px-16 z-10 max-h-[80%] overflow-y-auto no-scrollbar flex flex-col items-center justify-center">
                         <h3 className="text-sm font-bold text-slate-800 dark:text-white leading-relaxed font-cairo text-center break-words whitespace-pre-wrap transition-colors">
                             {activeDhikr?.text}
                         </h3>
@@ -638,17 +677,7 @@ const HisnMuslim: React.FC<HisnMuslimProps> = ({ soundEnabled, hapticsEnabled })
           </div>
       </div>
       
-      {/* Reset Button - FIXED POSITION TO ENSURE CLICKABILITY */}
-      <button 
-        type="button"
-        onClick={handleResetClick}
-        onTouchEnd={handleResetTouch}
-        onTouchStart={(e) => e.stopPropagation()}
-        className="fixed bottom-[110px] left-6 z-[9999] p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 shadow-xl border border-slate-200 dark:border-white/10 transition-transform active:scale-90 cursor-pointer pointer-events-auto touch-manipulation"
-        aria-label="تصفير العداد"
-      >
-        <RotateCcw size={24} className="pointer-events-none" />
-      </button>
+      {showResetConfirm && renderResetConfirmModal()}
 
     </div>
   );

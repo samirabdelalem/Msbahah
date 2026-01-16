@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import GlobalDashboard from './components/GlobalDashboard';
 import DigitalTasbih from './components/DigitalTasbih';
+import DuaList from './components/DuaList';
 import HisnMuslim from './components/HisnMuslim';
 import { TabView, ThemeMode } from './types';
 import { getDailyHadithOrWisdom } from './services/geminiService';
@@ -72,19 +73,19 @@ const App: React.FC = () => {
     const savedTotal = localStorage.getItem('billion_salawat_total');
     if (savedTotal) setPersonalTotal(parseInt(savedTotal));
     
-    // Fetch daily inspirational message
+    // Fetch daily inspirational message (Offline capable now)
     fetchDailyInspiration();
   }, []);
 
   const fetchDailyInspiration = async () => {
     const hasSeenToday = sessionStorage.getItem('daily_msg_seen');
-    if (!hasSeenToday && process.env.API_KEY) {
+    if (!hasSeenToday) {
         try {
              const msg = await getDailyHadithOrWisdom();
              setNotification(msg);
              sessionStorage.setItem('daily_msg_seen', 'true');
         } catch (e) {
-            console.log("Skipping AI daily msg due to error or missing key");
+            console.log("Error fetching daily msg");
         }
     }
   };
@@ -116,6 +117,13 @@ const App: React.FC = () => {
       case TabView.TASBIH:
         return (
           <DigitalTasbih 
+            soundEnabled={soundEnabled}
+            hapticsEnabled={hapticsEnabled}
+          />
+        );
+      case TabView.DUA_LIST:
+        return (
+          <DuaList 
             soundEnabled={soundEnabled}
             hapticsEnabled={hapticsEnabled}
           />
